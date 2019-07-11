@@ -1,0 +1,47 @@
+编译指令：
+python setup.py build develop
+
+开始训练脚本：
+python tools/train_net.py --config-file "experiments/cfgs/e2e_faster_rcnn_X_101_32x8d_FPN_1x.yaml" SOLVER.IMS_PER_BATCH 2 SOLVER.BASE_LR 0.0002 SOLVER.MAX_ITER 200000 SOLVER.STEPS "(50000, 100000)" TEST.IMS_PER_BATCH 1 MODEL.RPN.FPN_POST_NMS_TOP_N_TRAIN 2000
+
+关键目录：
+1、数据集：
+    maskrcnn-benchmark根目录下，新建datasets/VOC文件夹，下含Annotations，ImageSets，JPEGImages三个文件夹
+    其中，Annotations包含所有xml标注文件；JPEGImages包含所有训练和测试用图；
+    ImageSets下新建Main文件夹，内含train.txt，test.txt，trainval.txt，val.txt四个文件，可由脚本“makeVocTxt.py”生成
+
+2、预训练权重
+    在根目录下新建pre_train文件夹，里面存放github官网中下载的预训练权重
+
+3、cfg设置
+    在根目录下新建experiments文件夹，里面新建cfgs和result两个文件夹
+    将maskrcnn-benchmark/configs中的要用到的（也可将所有）yaml设置文件，拷贝到cfgs文件夹下，并修改要使用的yaml文件
+    常用修改（e2e_faster_rcnn_X_101_32x8d_FPN_1x.yaml为例）：
+        (1)  WEIGHT: "./maskrcnn-benchmark/pre_train/e2e_faster_rcnn_X_101_32x8d_FPN_1x.pth"
+        (2)  BASE_LR，STEPS等，也可在训练脚本指定
+    result文件夹中存放训练得到的权重
+
+4、数据集目录指定
+    在maskrcnn-benchmark/maskrcnn_benchmark下找到paths_catalog.py，修改如下：
+        第8行：DATA_DIR = "datasets"
+        第96-109行：
+        #######################
+        'voc_JY_train': {
+            "data_dir": "VOC",
+            "split": "train" #如果是test，那么就是"test"
+        },
+        'voc_JY_test': {
+            "data_dir": "VOC",
+            "split": "test" 
+        },
+        'voc_JY_val': {
+            "data_dir": "VOC",
+            "split": "val" 
+        },
+        ####################### 
+
+5、超参数设置
+    在maskrcnn-maskrcnn_benchmark下找到defaults.py，其中可修改参数较多，根据实际情况参考官方说明修改。
+    如：模型存放目录、checkpoint存放周期、batchsize等均在此修改
+    https://github.com/facebookresearch/maskrcnn-benchmark
+    https://blog.csdn.net/duanyajun987/article/details/86539373
